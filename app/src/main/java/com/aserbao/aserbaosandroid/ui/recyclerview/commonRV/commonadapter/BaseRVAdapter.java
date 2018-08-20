@@ -15,7 +15,7 @@ import java.util.List;
  * weixin: aserbao
  */
 
-public class BaseRvAdapter<T,K extends BaseRvViewholder> extends RecyclerView.Adapter<K> {
+public class BaseRVAdapter<T,K extends BaseRvViewholder> extends RecyclerView.Adapter<K> {
 
     private List<T> mData;
     private Context mContext;

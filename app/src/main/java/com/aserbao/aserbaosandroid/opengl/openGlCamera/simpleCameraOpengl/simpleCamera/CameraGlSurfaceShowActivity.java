@@ -28,7 +28,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 import static android.opengl.GLSurfaceView.RENDERMODE_WHEN_DIRTY;
-
+//GlSurfaceView显示Camera数据
 public class CameraGlSurfaceShowActivity extends AppCompatActivity implements SurfaceTexture.OnFrameAvailableListener {
     public SurfaceTexture mSurfaceTexture;
 
@@ -101,16 +101,24 @@ public class CameraGlSurfaceShowActivity extends AppCompatActivity implements Su
                 "varying vec2 textureCoordinate;\n" +
                 "\n" +
                 "void main() {\n" +
-                 "    vec4 tc = texture2D(videoTex, textureCoordinate);\n" +
+                "    vec4 tc = texture2D(videoTex, textureCoordinate);\n" +
                 "    float color = tc.r * 0.3 + tc.g * 0.59 + tc.b * 0.11;\n" +  //所有视图修改成黑白
-                "    gl_FragColor = vec4(color,color,color,1.0);\n" +
-//                "    gl_FragColor = vec4(tc.r,tc.g,tc.b,1.0);\n" +
+//                "    gl_FragColor = vec4(color,color,color,1.0);\n" +//这行表示应用黑白画面
+                "    gl_FragColor = vec4(tc.r,tc.g,tc.b,1.0);\n" +//这行表示应用彩色画面
                 "}\n";
         private FloatBuffer mPosBuffer;
         private FloatBuffer mTexBuffer;
         private float[] mPosCoordinate = {-1, -1, -1, 1, 1, -1, 1, 1};
-        private float[] mTexCoordinateBackRight = {1, 1, 0, 1, 1, 0, 0, 0};//顺时针转90并沿Y轴翻转  后摄像头正确，前摄像头上下颠倒
-        private float[] mTexCoordinateForntRight = {0, 1, 1, 1, 0, 0, 1, 0};//顺时针旋转90  后摄像头上下颠倒了，前摄像头正确
+        private float[] mTexCoordinateBackRight = {
+                1, 1,
+                0, 1,
+                1, 0,
+                0, 0};//顺时针转90并沿Y轴翻转  后摄像头正确，前摄像头上下颠倒
+        private float[] mTexCoordinateForntRight = {
+                0, 1,
+                1, 1,
+                0, 0,
+                1, 0};//顺时针旋转90  后摄像头上下颠倒了，前摄像头正确
 
         public int mProgram;
         public boolean mBoolean = false;

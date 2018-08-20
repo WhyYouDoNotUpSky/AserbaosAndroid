@@ -15,7 +15,7 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
-
+/*一个简单实例，通过OpenGl展示Camera数据*/
 /**
  * description:
  * Created by aserbao on 2018/1/26.
@@ -60,11 +60,16 @@ public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFra
                 -1, 1,
                 1, -1,
                 1, 1};
-        private float[] mTexCoordinate = {
+        /*private float[] mTexCoordinate = {
                 0, 1,
                 1, 1,
                 0, 0,
-                1, 0};
+                1, 0};*/
+        private float[] mTexCoordinate = {
+                1, 1,
+                0, 1,
+                1, 0,
+                0, 0};
 
         private FloatBuffer mPosBuffer;
         private FloatBuffer mTexBuffer;
