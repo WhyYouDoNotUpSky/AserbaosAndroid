@@ -2,6 +2,7 @@ package com.aserbao.aserbaosandroid.opengl.openGlCamera.simpleCameraOpengl.simpl
 
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
+import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
@@ -12,6 +13,14 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.aserbao.aserbaosandroid.R;
+
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.KeyPoint;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfKeyPoint;
+import org.opencv.features2d.FastFeatureDetector;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
 
@@ -63,7 +72,58 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
             mCamera.setPreviewCallback(new Camera.PreviewCallback() {
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
-                    render.refreshVerteices();
+                    try {
+                        Camera.Size size = camera.getParameters().getPreviewSize();
+                        processImage(data, size.width, size.height);
+
+                        camera.addCallbackBuffer(data);
+                    } catch (RuntimeException e) {
+                        // The camera has probably just been released, ignore.
+                    }
+
+
+                }
+
+                private void processImage(byte[] data, int width, int height) {
+                    Mat mat = new Mat(((int)(height*1.5)),width, CvType.CV_8UC1);//初始化一个矩阵,没数据
+                    //从(0,0)开始放数据,直到data放完或者矩阵被填满
+                    // (若是多通道,则把当前位置的通道全部填满，才继续下一个位置，data长度必须整除通道数).
+                    mat.put(0,0,data);
+                    // 转灰度图
+                    Mat grayMat1 = new Mat();
+                    Imgproc.cvtColor(mat, grayMat1, Imgproc.COLOR_YUV420sp2GRAY);
+
+                    // 二值化处理
+                    Mat thresholdMat1 = new Mat();
+                    Imgproc.threshold(grayMat1, thresholdMat1, 50, 255, Imgproc.THRESH_BINARY);
+
+                    /* 获取matches */
+                    MatOfKeyPoint matOfKeyPoint1 = new MatOfKeyPoint();
+                    FastFeatureDetector featureDetector = FastFeatureDetector.create(
+                            FastFeatureDetector.THRESHOLD,
+                            true,
+                            FastFeatureDetector.TYPE_9_16);
+                    featureDetector.detect(thresholdMat1, matOfKeyPoint1);
+                    KeyPoint[] keyPoints = matOfKeyPoint1.toArray();
+                    Log.e("onPreviewFrame","KeyPoint.length:"+keyPoints.length);
+                    int length = keyPoints.length;
+                    float[] v = new float[length*3];
+                    if (length>0){
+                        for (int i = 0; i < keyPoints.length; i++) {
+                            KeyPoint keyPoint = keyPoints[i];
+                            v[i*3] = (float) ((keyPoint.pt.x - (1080 / 2)) / (1080 / 2))*1080 / 1920;
+                            v[i*3+1] = (float) ( (1920 / 2)-keyPoint.pt.y)/(1920/2);
+                        }
+                    }
+//                    float[] v1 = {
+//                            0, 0, 0,
+//                            0.5f * 1080 / 1920, 0, 0,
+//                            -0.5f * 1080 / 1920, 0, 0/*,
+//                            0, -0.5f, 0,
+//                            0, 0.5f, 0*/
+//                    };
+                    render.refreshVerteices(v);
+//                    mGlSurfaceView.requestRender();
                 }
             });
             mCamera.startPreview();

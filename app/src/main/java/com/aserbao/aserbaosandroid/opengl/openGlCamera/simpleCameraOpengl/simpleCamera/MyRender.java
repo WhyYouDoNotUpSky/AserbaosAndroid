@@ -34,16 +34,17 @@ public class MyRender implements Renderer
 	
 	FloatBuffer vBuffer = getVertexBuf(verteices);
 	IntBuffer cBuffer = getVertexBuf(colors);
-	public void refreshVerteices(){
-        Log.e("opengl","MyRender:refreshVerteices");
-		Random random = new Random();
-		verteices[0] += (random.nextFloat() - 0.5f)/10;
-		verteices[1] += (random.nextFloat() - 0.5f)/10;
-		verteices[3] += (random.nextFloat() - 0.5f)/10;
-		verteices[4] += (random.nextFloat() - 0.5f)/10;
-		verteices[6] += (random.nextFloat() - 0.5f)/10;
-		verteices[7] += (random.nextFloat() - 0.5f)/10;
-		vBuffer = getVertexBuf(verteices);
+	public void refreshVerteices(float[] v){
+//        Log.e("opengl","MyRender:refreshVerteices");
+//		Random random = new Random();
+//		verteices[0] += (random.nextFloat() - 0.5f)/10;
+//		verteices[1] += (random.nextFloat() - 0.5f)/10;
+//		verteices[3] += (random.nextFloat() - 0.5f)/10;
+//		verteices[4] += (random.nextFloat() - 0.5f)/10;
+//		verteices[6] += (random.nextFloat() - 0.5f)/10;
+//		verteices[7] += (random.nextFloat() - 0.5f)/10;
+		verteices = v;
+		vBuffer = getVertexBuf(v);
 	}
 	@NonNull
 	private FloatBuffer getVertexBuf(float[] vertices) {
@@ -72,9 +73,9 @@ public class MyRender implements Renderer
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vBuffer);
 //		gl.glColorPointer(4, GL10.GL_FIXED, 0, cBuffer);
 		gl.glColor4f(0.8f,0,0,0.5f);
-		gl.glPointSize(20);
+		gl.glPointSize(8);
 		gl.glEnable(GL10.GL_POINT_SMOOTH);
-		gl.glDrawArrays(GL10.GL_POINTS, 0, 6);
+		gl.glDrawArrays(GL10.GL_POINTS, 0, verteices.length/3);
 		gl.glFinish();
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 //		gl.glDisableClientState(GL10.GL_COLOR_ARRAY);

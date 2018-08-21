@@ -2,6 +2,8 @@ package com.aserbao.aserbaosandroid;
 
 import android.app.Application;
 
+import org.opencv.android.OpenCVLoader;
+
 /**
  * Created by aserbao on 2018 2018/1/15.23:27
  * Email:aserbao@163.com
@@ -12,5 +14,6 @@ public class AserbaoApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        OpenCVLoader.initDebug();
     }
 }
