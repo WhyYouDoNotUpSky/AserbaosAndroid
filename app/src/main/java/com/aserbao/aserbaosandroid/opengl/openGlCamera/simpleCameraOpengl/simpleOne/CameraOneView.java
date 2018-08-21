@@ -11,6 +11,7 @@ import android.util.AttributeSet;
 import com.aserbao.aserbaosandroid.AUtils.BufferUtil;
 import com.aserbao.aserbaosandroid.AUtils.ShaderUtils;
 
+import java.io.IOException;
 import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -22,7 +23,7 @@ import javax.microedition.khronos.opengles.GL10;
  */
 
 
-public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFrameAvailableListener{
+public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFrameAvailableListener, GLSurfaceView.Renderer {
     public CameraOneView(Context context) {
         this(context, null);
     }
@@ -38,6 +39,31 @@ public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFra
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
         requestRender();
     }
+    private final BackgroundRenderer backgroundRenderer = new BackgroundRenderer();
+    private final PointCloudRenderer pointCloudRenderer = new PointCloudRenderer();
+    @Override
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        try {
+            pointCloudRenderer.createOnGlThread(getContext());
+            backgroundRenderer.createOnGlThread(getContext(),this);
+            new CameraManeger().OpenCamera(backgroundRenderer.getCameraTexture());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
+        GLES20.glViewport(0, 0, width, height);
+    }
+
+    @Override
+    public void onDrawFrame(GL10 gl) {
+        // Clear screen to notify driver it should not load any pixels from previous frame.
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+        backgroundRenderer.getCameraTexture().updateTexImage();
+        backgroundRenderer.draw();
+    }
 
     class CameraRenderer implements Renderer{
         private Context mContext;
@@ -51,7 +77,7 @@ public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFra
         private int mMVPMatrixHandle;
 
         private float[] mProjectMatrix = new float[16];
-        private float[] mCameraMatrix  = new float[16];
+        private float[] mViewMatrix = new float[16];
         private float[] mMVPMatrix     = new float[16];
         private float[] mTempMatrix     = new float[16];
 
@@ -73,11 +99,13 @@ public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFra
 
         private FloatBuffer mPosBuffer;
         private FloatBuffer mTexBuffer;
+        private final PointCloudRenderer pointCloudRenderer = new PointCloudRenderer();
+        private Triangle mTriangle;
 
         public CameraRenderer(Context context) {
             mContext = context;
             Matrix.setIdentityM(mProjectMatrix, 0);
-            Matrix.setIdentityM(mCameraMatrix, 0);
+            Matrix.setIdentityM(mViewMatrix, 0);
             Matrix.setIdentityM(mMVPMatrix, 0);
             Matrix.setIdentityM(mTempMatrix, 0);
 
@@ -86,7 +114,14 @@ public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFra
 
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-            GLES20.glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+            mTriangle = new Triangle();
+            try {
+                pointCloudRenderer.createOnGlThread(mContext);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            GLES20.glClearColor(0.3f, 0.0f, 0.0f, 0.0f);
             mProgram = ShaderUtils.createProgram(mContext, "vertex_texture.glsl", "fragment_texture.glsl");
             GLES20.glUseProgram(mProgram);//激活OpenGl程序
             createAndBindVideoTexture();
@@ -110,8 +145,9 @@ public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFra
             GLES20.glViewport(0, 0, width, height);
             float ratio = (float)width/height;
             Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,1,7);// 3和7代表远近视点与眼睛的距离，非坐标点
-            Matrix.setLookAtM(mCameraMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);// 3代表眼睛的坐标点
-            Matrix.multiplyMM(mMVPMatrix, 0, mProjectMatrix, 0, mCameraMatrix, 0);
+            Matrix.setLookAtM(mViewMatrix, 0, 0, 0, 3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);// 3代表眼睛的坐标点
+            Matrix.multiplyMM(mMVPMatrix, 0, mProjectMatrix, 0, mViewMatrix, 0);
+            int i = 0;
         }
 
         @Override
@@ -122,6 +158,15 @@ public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFra
 //            Matrix.multiplyMM(mTempMatrix, 0, mTempMatrix, 0, mMVPMatrix, 0);
             GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, mPosCoordinate.length / 2);
+
+//            pointCloudRenderer.update(new float[]{
+//                    0.1f,0.1f,0.1f,0.1f,
+//                    0.3f,0.3f,0.3f,0.3f,
+//                    0.6f,0.6f,0.6f,0.6f,
+//                    0.9f,0.9f,0.9f,0.9f
+//            });
+//            pointCloudRenderer.draw(mViewMatrix,mProjectMatrix);
+//            mTriangle.draw(mMVPMatrix);
         }
         /**创建显示的texture*/
         private void createAndBindVideoTexture() {
