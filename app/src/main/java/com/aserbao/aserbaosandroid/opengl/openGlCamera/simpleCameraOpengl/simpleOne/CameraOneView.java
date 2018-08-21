@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 
 import com.aserbao.aserbaosandroid.AUtils.BufferUtil;
 import com.aserbao.aserbaosandroid.AUtils.ShaderUtils;
+import com.aserbao.aserbaosandroid.opengl.openGlCamera.simpleCameraOpengl.simpleCamera.MyRender;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -101,6 +102,7 @@ public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFra
         private FloatBuffer mTexBuffer;
         private final PointCloudRenderer pointCloudRenderer = new PointCloudRenderer();
         private Triangle mTriangle;
+        private MyRender mMyRender;
 
         public CameraRenderer(Context context) {
             mContext = context;
@@ -110,16 +112,18 @@ public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFra
             Matrix.setIdentityM(mTempMatrix, 0);
 
             mCameraManeger = new CameraManeger();
+            mMyRender = new MyRender();
         }
 
         @Override
         public void onSurfaceCreated(GL10 gl, EGLConfig config) {
             mTriangle = new Triangle();
-            try {
-                pointCloudRenderer.createOnGlThread(mContext);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            mMyRender.onSurfaceCreated(gl,config);
+//            try {
+//                pointCloudRenderer.createOnGlThread(mContext);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 
             GLES20.glClearColor(0.3f, 0.0f, 0.0f, 0.0f);
             mProgram = ShaderUtils.createProgram(mContext, "vertex_texture.glsl", "fragment_texture.glsl");
@@ -142,6 +146,7 @@ public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFra
 
         @Override
         public void onSurfaceChanged(GL10 gl, int width, int height) {
+            mMyRender.onSurfaceChanged(gl,width,height);
             GLES20.glViewport(0, 0, width, height);
             float ratio = (float)width/height;
             Matrix.orthoM(mProjectMatrix,0,-1,1,-ratio,ratio,1,7);// 3和7代表远近视点与眼睛的距离，非坐标点
@@ -152,6 +157,7 @@ public class CameraOneView extends GLSurfaceView implements SurfaceTexture.OnFra
 
         @Override
         public void onDrawFrame(GL10 gl) {
+            mMyRender.onDrawFrame(gl);
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
             mCameraTexture.updateTexImage();//通过此方法更新接收到的预览数据
 //            mCameraTexture.getTransformMatrix(mTempMatrix);//获取到图像数据流的坐标变换矩阵

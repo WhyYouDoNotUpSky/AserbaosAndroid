@@ -10,6 +10,10 @@
         android:id="@+id/frame_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+        <android.opengl.GLSurfaceView
+            android:id="@+id/gl_surface_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
         <SurfaceView
                     android:layout_width="match_parent"
                      android:layout_height="match_parent"
