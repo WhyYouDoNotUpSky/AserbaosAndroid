@@ -69,6 +69,7 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
             mCamera = Camera.open(0);
             mCamera.setDisplayOrientation(90);
             mCamera.setPreviewDisplay(holder);
+            final double[] k = {0};
             mCamera.setPreviewCallback(new Camera.PreviewCallback() {
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
@@ -85,10 +86,11 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
                 }
 
                 private void processImage(byte[] data, int width, int height) {
-                    Mat mat = new Mat(((int)(height*1.5)),width, CvType.CV_8UC1);//初始化一个矩阵,没数据
+                    k[0]+=0.01;
+                    Mat mat = new Mat(((int) (height * 1.5)), width, CvType.CV_8UC1);//初始化一个矩阵,没数据
                     //从(0,0)开始放数据,直到data放完或者矩阵被填满
                     // (若是多通道,则把当前位置的通道全部填满，才继续下一个位置，data长度必须整除通道数).
-                    mat.put(0,0,data);
+                    mat.put(0, 0, data);
                     // 转灰度图
                     Mat grayMat1 = new Mat();
                     Imgproc.cvtColor(mat, grayMat1, Imgproc.COLOR_YUV420sp2GRAY);
@@ -105,23 +107,35 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
                             FastFeatureDetector.TYPE_9_16);
                     featureDetector.detect(thresholdMat1, matOfKeyPoint1);
                     KeyPoint[] keyPoints = matOfKeyPoint1.toArray();
-                    Log.e("onPreviewFrame","KeyPoint.length:"+keyPoints.length);
+                    Log.e("onPreviewFrame", "KeyPoint.length:" + keyPoints.length);
                     int length = keyPoints.length;
-                    float[] v = new float[length*3];
-                    if (length>0){
+                    float[] v = new float[length * 3];
+                    if (length > 0) {
                         for (int i = 0; i < keyPoints.length; i++) {
                             KeyPoint keyPoint = keyPoints[i];
-                            v[i*3] = (float) ((keyPoint.pt.x - (1080 / 2)) / (1080 / 2))*1080 / 1920;
-                            v[i*3+1] = (float) ( (1920 / 2)-keyPoint.pt.y)/(1920/2);
+                            float x = (float) ((keyPoint.pt.x - (1080 / 2)) / (1080 / 2)) * 1080
+                                    / 1920;
+                            float y = (float) ((1920 / 2) - keyPoint.pt.y) / (1920 / 2);
+                            v[i * 3] = (float) rotateX(x,y,11) -0.48f;
+                            v[i * 3 + 1] = (float) rotateY(x,y,11) +0.48f;
+
                         }
                     }
-//                    float[] v1 = {
-//                            0, 0, 0,
-//                            0.5f * 1080 / 1920, 0, 0,
-//                            -0.5f * 1080 / 1920, 0, 0/*,
-//                            0, -0.5f, 0,
-//                            0, 0.5f, 0*/
-//                    };
+                    /*float[] v1 = {
+                            0, 0, 0,
+                            0.5f , 0, 0,
+                            0.25f , 0, 0,
+                            0.25f , 0.25f, 0,
+                            0.5f , 0.5f, 0,
+                            0,0.5f , 0,
+                            0, 0.25f , 0
+                    };
+                    for (int i = 0; i < v1.length/3; i++) {
+                        float x = v1[i * 3];
+                        float y = v1[i * 3 +1];
+                        v1[i * 3] = (float) rotateX(x,y,180);
+                        v1[i * 3+1] = (float) rotateY(x,y,180);
+                    }*/
                     render.refreshVerteices(v);
 //                    mGlSurfaceView.requestRender();
                 }
@@ -131,9 +145,20 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
         }
     }
 
+    private static double rotateX(double x1, double y1, double alpha) {
+
+        return x1 * Math.cos(alpha) - y1 * Math.sin(alpha);
+    }
+
+    private static double rotateY(double x1, double y1, double alpha) {
+
+        return x1 * Math.sin(alpha) + y1 * Math.cos(alpha);
+    }
+
+
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        Log.e("opengl","surfaceChanged");
+        Log.e("opengl", "surfaceChanged");
         mCamera.autoFocus(new Camera.AutoFocusCallback() {
             @Override
             public void onAutoFocus(boolean success, Camera camera) {
