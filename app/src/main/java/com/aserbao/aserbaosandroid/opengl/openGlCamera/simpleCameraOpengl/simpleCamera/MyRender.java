@@ -18,12 +18,7 @@ public class MyRender implements Renderer
 {	
 	float[] verteices = new float[]
 			{
-				0.1f,0.6f,0.0f,
-				-0.3f,0.0f,0.0f,
-				-0.3f,0.0f,0.0f,
-				-0.3f,0.0f,0.0f,
-				-0.3f,0.2f,0.0f,
-				0.3f,0.1f,0.0f
+
 			};
 	int[] colors = new int[]
 			{

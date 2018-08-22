@@ -2,7 +2,6 @@ package com.aserbao.aserbaosandroid.opengl.openGlCamera.simpleCameraOpengl.simpl
 
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
-import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
@@ -14,7 +13,6 @@ import android.view.SurfaceView;
 
 import com.aserbao.aserbaosandroid.R;
 
-import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
@@ -69,7 +67,6 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
             mCamera = Camera.open(0);
             mCamera.setDisplayOrientation(90);
             mCamera.setPreviewDisplay(holder);
-            final double[] k = {0};
             mCamera.setPreviewCallback(new Camera.PreviewCallback() {
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
@@ -86,7 +83,6 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
                 }
 
                 private void processImage(byte[] data, int width, int height) {
-                    k[0]+=0.01;
                     Mat mat = new Mat(((int) (height * 1.5)), width, CvType.CV_8UC1);//初始化一个矩阵,没数据
                     //从(0,0)开始放数据,直到data放完或者矩阵被填满
                     // (若是多通道,则把当前位置的通道全部填满，才继续下一个位置，data长度必须整除通道数).
@@ -116,8 +112,8 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
                             float x = (float) ((keyPoint.pt.x - (1080 / 2)) / (1080 / 2)) * 1080
                                     / 1920;
                             float y = (float) ((1920 / 2) - keyPoint.pt.y) / (1920 / 2);
-                            v[i * 3] = (float) rotateX(x,y,11) -0.48f;
-                            v[i * 3 + 1] = (float) rotateY(x,y,11) +0.48f;
+                            v[i * 3] = (float) rotateX(x,y,11) -0.43f;
+                            v[i * 3 + 1] = (float) rotateY(x,y,11) +0.44f;
 
                         }
                     }
@@ -179,6 +175,7 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         if (mCamera != null) {
+            mCamera.setPreviewCallback(null);
             mCamera.stopPreview();
             mCamera.release();
             mCamera = null;
