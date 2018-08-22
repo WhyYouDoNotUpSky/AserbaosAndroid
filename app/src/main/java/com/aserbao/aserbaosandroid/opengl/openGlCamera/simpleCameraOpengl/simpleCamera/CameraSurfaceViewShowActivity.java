@@ -66,10 +66,12 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
     public void surfaceCreated(SurfaceHolder holder) {
         try {
             // Open the Camera in preview mode
-            final Random random = new Random();
+//            final Random random = new Random();
             mCamera = Camera.open(0);
             mCamera.setDisplayOrientation(90);
             mCamera.setPreviewDisplay(holder);
+            final FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector
+                    .GRID_FAST);
             mCamera.setPreviewCallback(new Camera.PreviewCallback() {
                 @Override
                 public void onPreviewFrame(byte[] data, Camera camera) {
@@ -104,15 +106,13 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
                             FastFeatureDetector.THRESHOLD,
                             true,
                             FastFeatureDetector.TYPE_9_16);*/
-                    FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.GRID_FAST);
+
                     featureDetector.detect(thresholdMat1, matOfKeyPoint1);
                     KeyPoint[] keyPoints = matOfKeyPoint1.toArray();
-                    int length = keyPoints.length;
-                    float[] v = new float[length * 3];
-                    if (length > 0) {
+                    float[] v = new float[keyPoints.length * 3];
 //                        double ran = (keyPoints.length - 100) / (double)keyPoints.length;
-                        for (int i = 0; i < keyPoints.length; i++) {
-                            KeyPoint keyPoint = keyPoints[i];
+                    for (int i = 0; i < keyPoints.length; i++) {
+                        KeyPoint keyPoint = keyPoints[i];
                             /*if (keyPoint.response<0.02){
                                 continue;
                             }*/
@@ -138,13 +138,12 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
                             }*/
 
 
-                            float x = (float) ((keyPoint.pt.x - (1080 / 2)) / (1080 / 2)) * 1080
-                                    / 1920;
-                            float y = (float) ((1920 / 2) - keyPoint.pt.y) / (1920 / 2);
-                            v[i * 3] = (float) rotateX(x, y, 11) - 0.43f;
-                            v[i * 3 + 1] = (float) rotateY(x, y, 11) + 0.44f;
+                        float x = (float) ((keyPoint.pt.x - (1080 / 2)) / (1080 / 2)) * 1080
+                                / 1920;
+                        float y = (float) ((1920 / 2) - keyPoint.pt.y) / (1920 / 2);
+                        v[i * 3] = (float) rotateX(x, y, 11) - 0.43f;
+                        v[i * 3 + 1] = (float) rotateY(x, y, 11) + 0.44f;
 
-                        }
                     }
                     /*float[] v1 = {
                             0, 0, 0,
