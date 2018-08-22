@@ -18,9 +18,11 @@ import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.features2d.FastFeatureDetector;
+import org.opencv.features2d.FeatureDetector;
 import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
+import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -64,6 +66,7 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
     public void surfaceCreated(SurfaceHolder holder) {
         try {
             // Open the Camera in preview mode
+            final Random random = new Random();
             mCamera = Camera.open(0);
             mCamera.setDisplayOrientation(90);
             mCamera.setPreviewDisplay(holder);
@@ -97,23 +100,49 @@ public class CameraSurfaceViewShowActivity extends AppCompatActivity implements 
 
                     /* 获取matches */
                     MatOfKeyPoint matOfKeyPoint1 = new MatOfKeyPoint();
-                    FastFeatureDetector featureDetector = FastFeatureDetector.create(
+                    /*FastFeatureDetector featureDetector = FastFeatureDetector.create(
                             FastFeatureDetector.THRESHOLD,
                             true,
-                            FastFeatureDetector.TYPE_9_16);
+                            FastFeatureDetector.TYPE_9_16);*/
+                    FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.GRID_FAST);
                     featureDetector.detect(thresholdMat1, matOfKeyPoint1);
                     KeyPoint[] keyPoints = matOfKeyPoint1.toArray();
-                    Log.e("onPreviewFrame", "KeyPoint.length:" + keyPoints.length);
                     int length = keyPoints.length;
                     float[] v = new float[length * 3];
                     if (length > 0) {
+//                        double ran = (keyPoints.length - 100) / (double)keyPoints.length;
                         for (int i = 0; i < keyPoints.length; i++) {
                             KeyPoint keyPoint = keyPoints[i];
+                            /*if (keyPoint.response<0.02){
+                                continue;
+                            }*/
+                            /*double v1 = random.nextDouble();
+                            if (v1  <ran){
+                                continue;
+                            }*/
+
+                            /*if (((Math.abs((keyPoint.pt.x - (1920 / 2))) / (1920 / 2)) > 0.3 ||
+                                    (Math.abs((keyPoint.pt.y - (1080 / 2))) / (1080 / 2)) > 0.3)) {
+                                if (random.nextFloat() > 0.05) {
+                                    continue;
+                                }
+                            }*/
+                            /*double x1 = Math.abs((keyPoint.pt.x - (1920 / 2)));
+                            double y1 = Math.abs((keyPoint.pt.y - (1080 / 2)));
+                            double v1 = Math.sqrt(x1 * x1 + y1 * y1)
+                                    / Math.sqrt(1080/2 * 1080/2 + 1920/2 * 1920/2);
+                            double v2 = v1 * v1 * v1 * v1 * v1 * v1;
+                            double v3 = random.nextDouble();
+                            if (v2 > v3){
+                                continue;
+                            }*/
+
+
                             float x = (float) ((keyPoint.pt.x - (1080 / 2)) / (1080 / 2)) * 1080
                                     / 1920;
                             float y = (float) ((1920 / 2) - keyPoint.pt.y) / (1920 / 2);
-                            v[i * 3] = (float) rotateX(x,y,11) -0.43f;
-                            v[i * 3 + 1] = (float) rotateY(x,y,11) +0.44f;
+                            v[i * 3] = (float) rotateX(x, y, 11) - 0.43f;
+                            v[i * 3 + 1] = (float) rotateY(x, y, 11) + 0.44f;
 
                         }
                     }

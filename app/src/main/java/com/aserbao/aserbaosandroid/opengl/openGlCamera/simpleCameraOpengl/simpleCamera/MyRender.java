@@ -66,9 +66,13 @@ public class MyRender implements Renderer
 		gl.glLoadIdentity();
 		gl.glTranslatef(0.0f, 0.0f, -1.0f);
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vBuffer);
+
+		gl.glEnable(GL10.GL_BLEND); // 打开混合
+		gl.glDisable(GL10.GL_DEPTH_TEST); // 关闭深度测试
+		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE); // 基于源象素alpha通道值的半透明混合函数
 //		gl.glColorPointer(4, GL10.GL_FIXED, 0, cBuffer);
-		gl.glColor4f(0.8f,0,0,0.5f);
-		gl.glPointSize(8);
+		gl.glColor4f(1f,1f,1f,0.2f);
+		gl.glPointSize(10);
 		gl.glEnable(GL10.GL_POINT_SMOOTH);
 		gl.glDrawArrays(GL10.GL_POINTS, 0, verteices.length/3);
 		gl.glFinish();
